@@ -9,13 +9,14 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"bytes"
 
 	"github.com/tidwall/gjson"
 )
 
 const BRANCH_NAME_LIMIT = 59
 
-func (c Configuration) CreateBranch() {
+func (c Configuration) Checkout() {
 
 	issueID := getIssueId()
 
@@ -73,11 +74,20 @@ func generateBranchName(issueName string, body []byte) string {
 }
 
 func gitCheckout(branchName string) {
-	cpCmd := exec.Command("git", "checkout", "-b", branchName, "master")
-	err := cpCmd.Run()
+	cmd := exec.Command("git", "checkout", "-b", branchName, "master")
+	err := cmd.Run()
 	if err != nil {
-		cpCmd := exec.Command("git", "checkout", branchName)
-		cpCmd.Run()
+		cmd := exec.Command("git", "checkout", branchName)
+		var out bytes.Buffer
+		var stderr bytes.Buffer
+		cmd.Stdout = &out
+		cmd.Stderr = &stderr
+		err = cmd.Run()
+		if err != nil {
+			fmt.Println("git", "checkout", branchName, fmt.Sprint(err) + ": " + stderr.String())
+			return
+		}
+		fmt.Println("Result: " + out.String())
 	}
 }
 
@@ -94,8 +104,8 @@ func getExistingBranch(issueId string) string {
 	out, err := exec.Command("bash", "-c", "git branch | grep "+issueId).Output()
 	splited := strings.Split(string(out), "\n")
 	if err == nil {
-		if len(splited) > 1 {
-			return string(out)
+		if len(splited) > 0 {
+			return splited[0]
 		}
 	}
 	return ""

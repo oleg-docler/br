@@ -32,6 +32,6 @@ func main() {
 	if len(os.Args) == 1 {
 		api.GetIssues()
 	} else {
-		api.CreateBranch()
+		api.Checkout()
 	}
 }
