@@ -5,7 +5,7 @@ MVP
 ## Installation
 
 ```bash
-curl -L https://github.com/oleg-docler/br/releases/download/0.0.5/br -o br && chmod +x br && ./br
+curl -L https://github.com/oleg-docler/br/releases/download/0.0.6/br -o br && chmod +x br && ./br
 ```
 
 ## Usage

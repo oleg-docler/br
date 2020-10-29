@@ -7,7 +7,7 @@ import (
 
 func getVersion() {
 	if len(os.Args) > 1 && os.Args[1] == "-v" {
-		fmt.Println("0.0.5")
+		fmt.Println("0.0.6")
 		os.Exit(0)
 	}
 }
