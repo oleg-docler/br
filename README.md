@@ -20,5 +20,8 @@ br [num]
 ```
 [num] - Jira issue number, e.g. JASMIN-1293, 1293 - issue number
 
+If something wrong with the credentials, you can remove the ~/.br/config.json file.
+After several incorrect login attempts, you need to login to your jira site first.
+
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)

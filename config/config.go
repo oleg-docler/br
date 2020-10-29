@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/tkanos/gonfig"
 	"golang.org/x/crypto/ssh/terminal"
@@ -48,6 +49,7 @@ func AskUser() Configuration {
 
 	fmt.Print("Enter your Jira url (e.g. https://jira.companyname.com): ")
 	fmt.Scanf("%s", &configuration.URL)
+	configuration.URL = strings.TrimRight(configuration.URL, "/")
 	fmt.Print("Enter your Jira team (e.g. JASMINCORE): ")
 	fmt.Scanf("%s", &configuration.TEAM)
 	fmt.Print("Enter your Jira login: ")
