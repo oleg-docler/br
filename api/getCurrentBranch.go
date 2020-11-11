@@ -1,13 +1,14 @@
 package api
 
 import (
-	"fmt"
 	"os/exec"
+	"strings"
 )
 
-func printCurrentBranch() {
+func getCurrentBranch() string {
 	out, err := exec.Command("git", "branch", "--show-current").Output()
 	if err == nil {
-		fmt.Println("Current branch:", string(out))
+		return strings.Trim(string(out), "\n")
 	}
+	return ""
 }

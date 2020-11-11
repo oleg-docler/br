@@ -42,7 +42,8 @@ func (c Configuration) getIssuesBody() []byte {
 
 func (c Configuration) GetIssues() {
 
-	printCurrentBranch()
+	currentBranch := getCurrentBranch()
+	fmt.Println("Current branch:", currentBranch)
 
 	body := c.getIssuesBody()
 	var myStoredVariable interface{}

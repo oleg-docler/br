@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
@@ -9,7 +10,6 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
-	"bytes"
 
 	"github.com/tidwall/gjson"
 )
@@ -33,7 +33,8 @@ func (c Configuration) Checkout() {
 		gitCheckout(newBranchName)
 	}
 
-	printCurrentBranch()
+	currentBranch := getCurrentBranch()
+	fmt.Println("Current branch:", currentBranch)
 
 	printAnotherBranches(issueID)
 }
@@ -62,7 +63,7 @@ func generateBranchName(issueName string, body []byte) string {
 	if name.String() == "Bug" {
 		bugOrFeature = "bugfix"
 	}
-	var replacer = strings.NewReplacer(" ", "-", ":", "-", "(", "-", ")", "-", "_", "-", "/", "-", "--", "-", "'", "-", ".", "-", "\n", "")
+	var replacer = strings.NewReplacer(",", "-", " ", "-", ":", "-", "(", "-", ")", "-", "_", "-", "/", "-", "--", "-", "'", "-", ".", "-", "\n", "")
 	branchName := replacer.Replace(issueName + "-" + summary.String())
 	branchName = bugOrFeature + "/" + replacer.Replace(branchName)
 	branchName = strings.Trim(branchName, "-")
@@ -74,21 +75,23 @@ func generateBranchName(issueName string, body []byte) string {
 }
 
 func gitCheckout(branchName string) {
-	cmd := exec.Command("git", "checkout", "-b", branchName, "master")
+	cmd := exec.Command("git", "branch", branchName, "master")
+	cmd.Run()
+	cmd = exec.Command("git", "checkout", branchName)
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
 	err := cmd.Run()
 	if err != nil {
-		cmd := exec.Command("git", "checkout", branchName)
-		var out bytes.Buffer
-		var stderr bytes.Buffer
-		cmd.Stdout = &out
-		cmd.Stderr = &stderr
-		err = cmd.Run()
-		if err != nil {
-			fmt.Println("git", "checkout", branchName, fmt.Sprint(err) + ": " + stderr.String())
-			return
-		}
+		fmt.Println("git", "checkout", branchName, fmt.Sprint(err)+": "+stderr.String())
+		return
+	}
+	result := out.String()
+	if result != "" {
 		fmt.Println("Result: " + out.String())
 	}
+
 }
 
 func getIssueId() string {
@@ -105,7 +108,9 @@ func getExistingBranch(issueId string) string {
 	splited := strings.Split(string(out), "\n")
 	if err == nil {
 		if len(splited) > 0 {
-			return splited[0]
+			var replacer = strings.NewReplacer("* ", "")
+			branchName := replacer.Replace(splited[0])
+			return branchName
 		}
 	}
 	return ""
@@ -119,5 +124,23 @@ func printAnotherBranches(issueId string) {
 			fmt.Println("By the way, you have these branches:")
 			fmt.Printf("%s", out)
 		}
+	}
+}
+
+func (c Configuration) PushTmpBranch() {
+	currentBranch := getCurrentBranch()
+	cmd := exec.Command("git", "push", "origin", currentBranch+":"+strings.Trim(os.Args[1], "\n"))
+	var out bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	if err != nil {
+		fmt.Println("git", "push", "origin", currentBranch+":"+strings.Trim(os.Args[1], "\n"), fmt.Sprint(err)+": "+stderr.String())
+		return
+	}
+	if out.String() != "" || stderr.String() != "" {
+		fmt.Println("git", "push", "origin", currentBranch+":"+strings.Trim(os.Args[1], "\n"))
+		fmt.Println("Result: " + out.String() + stderr.String())
 	}
 }
